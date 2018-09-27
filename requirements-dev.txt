@@ -3,4 +3,4 @@ pytest
 pytest-cov
 pytest-django
 Django
-sendgrid>=3.6.5,<4
+sendgrid>=5.6

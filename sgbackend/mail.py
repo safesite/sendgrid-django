@@ -25,6 +25,7 @@ from sendgrid.helpers.mail import (
     Mail,
     Personalization,
     Substitution,
+    SandBoxMode
 )
 
 
@@ -43,6 +44,8 @@ class SendGridBackend(BaseEmailBackend):
         if not self.api_key:
             raise ImproperlyConfigured('''
                 SENDGRID_API_KEY must be declared in settings.py''')
+
+
 
         self.sg = sendgrid.SendGridAPIClient(apikey=self.api_key)
         self.version = 'sendgrid/{0};django'.format(__version__)
@@ -67,10 +70,12 @@ class SendGridBackend(BaseEmailBackend):
         return count
 
     def _build_sg_mail(self, email):
-        mail = Mail()
+       
         from_name, from_email = rfc822.parseaddr(email.from_email)
         # Python sendgrid client should improve
         # sendgrid/helpers/mail/mail.py:164
+        
+
         if not from_name:
             from_name = None
         mail.set_from(Email(from_email, from_name))
@@ -101,6 +106,11 @@ class SendGridBackend(BaseEmailBackend):
         if hasattr(email, 'custom_args'):
             for k, v in email.custom_args.items():
                 mail.add_custom_arg(CustomArg(k, v))
+
+        if hasattr(email, 'sanbox'):
+            for c in email.sanbox:
+                mail.add_custom_arg(CustomArg(k, v))
+
 
         if hasattr(email, 'template_id'):
             mail.set_template_id(email.template_id)
