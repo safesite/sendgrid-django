@@ -70,12 +70,10 @@ class SendGridBackend(BaseEmailBackend):
         return count
 
     def _build_sg_mail(self, email):
-       
+        mail = Mail()
         from_name, from_email = rfc822.parseaddr(email.from_email)
         # Python sendgrid client should improve
         # sendgrid/helpers/mail/mail.py:164
-        
-
         if not from_name:
             from_name = None
         mail.set_from(Email(from_email, from_name))
