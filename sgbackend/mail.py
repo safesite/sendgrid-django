@@ -86,7 +86,7 @@ class SendGridBackend(BaseEmailBackend):
             personalization.add_cc(Email(e))
         for e in email.bcc:
             personalization.add_bcc(Email(e))
-        personalization.set_subject(email.subject)
+        personalization.subject(email.subject)
         mail.add_content(Content("text/plain", email.body))
         if isinstance(email, EmailMultiAlternatives):
             for alt in email.alternatives:
