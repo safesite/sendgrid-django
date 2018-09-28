@@ -88,14 +88,14 @@ class SendGridBackend(BaseEmailBackend):
             personalization.add_bcc(Email(e))
         personalization.subject = email.subject
         mail.add_content(Content("text/plain", email.body))
-        if isinstance(email, EmailMultiAlternatives):
-            for alt in email.alternatives:
-                if alt[1] == "text/html":
-                    mail.add_content(Content(alt[1], alt[0]))
-        elif email.content_subtype == "html":
-            mail.contents = []
-            mail.add_content(Content("text/plain", ' '))
-            mail.add_content(Content("text/html", email.body))
+        # if isinstance(email, EmailMultiAlternatives):
+        #     for alt in email.alternatives:
+        #         if alt[1] == "text/html":
+        #             mail.add_content(Content(alt[1], alt[0]))
+        # elif email.content_subtype == "html":
+        #     mail.contents = []
+        #     mail.add_content(Content("text/plain", ' '))
+        mail.add_content(Content("text/html", email.body))
 
         if hasattr(email, 'categories'):
             for c in email.categories:
