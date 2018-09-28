@@ -111,7 +111,7 @@ class SendGridBackend(BaseEmailBackend):
 
 
         if hasattr(email, 'template_id'):
-            mail.set_template_id(email.template_id)
+            mail.template_id(email.template_id)
             if hasattr(email, 'substitutions'):
                 for key, value in email.substitutions.items():
                     personalization.add_substitution(Substitution(key, value))
