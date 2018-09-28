@@ -135,25 +135,25 @@ class SendGridBackend(BaseEmailBackend):
         if reply_to_string:
             reply_to_name, reply_to_email = rfc822.parseaddr(reply_to_string)
             if reply_to_name and reply_to_email:
-                mail.set_reply_to(Email(reply_to_email, reply_to_name))
+                mail.reply_to = Email(reply_to_email, reply_to_name)
             elif reply_to_email:
-                mail.set_reply_to(Email(reply_to_email))
+                mail.reply_to = Email(reply_to_email)
 
         for attachment in email.attachments:
             if isinstance(attachment, MIMEBase):
                 attach = Attachment()
-                attach.set_filename(attachment.get_filename())
-                attach.set_content(base64.b64encode(attachment.get_payload()))
+                attach.filename = attachment.get_filename()
+                attach.content = base64.b64encode(attachment.get_payload())
                 mail.add_attachment(attach)
             elif isinstance(attachment, tuple):
                 attach = Attachment()
-                attach.set_filename(attachment[0])
+                attach.filename = attachment[0]
                 base64_attachment = base64.b64encode(attachment[1])
                 if sys.version_info >= (3,):
-                    attach.set_content(str(base64_attachment, 'utf-8'))
+                    attach.content = str(base64_attachment, 'utf-8')
                 else:
-                    attach.set_content(base64_attachment)
-                attach.set_type(attachment[2])
+                    attach.content = base64_attachment
+                attach.type = attachment[2]
                 mail.add_attachment(attach)
 
         mail.add_personalization(personalization)
