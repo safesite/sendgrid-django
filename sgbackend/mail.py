@@ -114,6 +114,10 @@ class SendGridBackend(BaseEmailBackend):
 
         if hasattr(email, 'template_id'):
             mail.template_id = email.template_id
+            # Version 3 dynamic data  handle bars {{name}}
+            if hasattr(email, 'dynamic_data'):
+                personalization.dynamic_template_data = email.dynamic_data
+            # Version 3 substitutions
             if hasattr(email, 'substitutions'):
                 for key, value in email.substitutions.items():
                     personalization.add_substitution(Substitution(key, value))
