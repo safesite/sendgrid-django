@@ -112,18 +112,13 @@ class SendGridBackend(BaseEmailBackend):
 
         # Used to override the list management (password reset etc)
         if hasattr(email, 'bypass_list_management'):
-            mail_settings.bypass_list_management = email.bypass_list_management
+            mail_settings.bypass_list_management = BypassListManagement(email.bypass_list_management)
             
         #Check for sandbox mode
         sandbox_mode = getattr(settings, "SENDGRID_SANDBOX", False)
         if sandbox_mode:
             # sandbox_whitelist_domains = getattr(settings, "SENDGRID_SANDBOX_WHITELIST_DOMAINS", []])
-            
-            mail_settings.sandbox_mode = {
-                "settings" : {
-                    "enable" : sandbox_mode
-                }
-            }
+            mail_settings.sandbox_mode = SandBoxMode(sandbox_mode)
 
 
 
