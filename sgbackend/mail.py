@@ -26,7 +26,8 @@ from sendgrid.helpers.mail import (
     Personalization,
     Substitution,
     MailSettings,
-    SandBoxMode
+    SandBoxMode,
+    BypassListManagement
 )
 
 
