@@ -89,7 +89,7 @@ class SendGridBackend(BaseEmailBackend):
         personalization.subject = email.subject
         if email.content_subtype == "html":
             mail.add_content(Content("text/html", email.body))
-        else
+        else:
             mail.add_content(Content("text/plain", email.body))
         if isinstance(email, EmailMultiAlternatives):
             for alt in email.alternatives:
