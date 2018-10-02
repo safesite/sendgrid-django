@@ -117,9 +117,15 @@ class SendGridBackend(BaseEmailBackend):
         #Check for sandbox mode
         sandbox_mode = getattr(settings, "SENDGRID_SANDBOX", False)
         if sandbox_mode:
-            # sandbox_whitelist_domains = getattr(settings, "SENDGRID_SANDBOX_WHITELIST_DOMAINS", []])
-            mail_settings.sandbox_mode = SandBoxMode(sandbox_mode)
+            sandbox_whitelist_domains = getattr(settings, "SENDGRID_SANDBOX_WHITELIST_DOMAINS", []])
+            sandbox_whitelist = False
+            for e in email.to:
+                domain = email.split('@')[1]
+                if domain in sandbox_whitelist_domains:
+                    sandbox_whitelist = True
 
+            if not sandbox_whitelist:
+                mail_settings.sandbox_mode = SandBoxMode(sandbox_mode)
 
 
         if hasattr(email, 'template_id'):
