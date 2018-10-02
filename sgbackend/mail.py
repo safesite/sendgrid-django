@@ -25,6 +25,7 @@ from sendgrid.helpers.mail import (
     Mail,
     Personalization,
     Substitution,
+    MailSettings,
     SandBoxMode
 )
 
@@ -79,6 +80,8 @@ class SendGridBackend(BaseEmailBackend):
         mail.from_email = Email(from_email, from_name)
         mail.subject = email.subject
 
+        mail_settings = MailSettings()
+
         personalization = Personalization()
         for e in email.to:
             personalization.add_to(Email(e))
@@ -107,9 +110,25 @@ class SendGridBackend(BaseEmailBackend):
             for k, v in email.custom_args.items():
                 mail.add_custom_arg(CustomArg(k, v))
 
-        if hasattr(email, 'sanbox'):
-            for c in email.sanbox:
-                mail.add_custom_arg(CustomArg(k, v))
+        # Used to override the list management (password reset etc)
+        if hasattr(email, 'bypass_list_management'):
+            mail_settings.bypass_list_management = {
+                "settings" : {
+                    "enable" : email.bypass_list_management
+                }
+            }
+            
+        #Check for sandbox mode
+        sandbox_mode = getattr(settings, "SENDGRID_SANDBOX", False)
+        if sandbox_mode:
+            # sandbox_whitelist_domains = getattr(settings, "SENDGRID_SANDBOX_WHITELIST_DOMAINS", []])
+            
+            mail_settings.sandbox_mode = {
+                "settings" : {
+                    "enable" : sandbox_mode
+                }
+            }
+
 
 
         if hasattr(email, 'template_id'):
@@ -163,4 +182,5 @@ class SendGridBackend(BaseEmailBackend):
                 mail.add_attachment(attach)
 
         mail.add_personalization(personalization)
+        mail.mail_settings = mail_settings
         return mail.get()
