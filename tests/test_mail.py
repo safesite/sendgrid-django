@@ -3,32 +3,10 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.mail import EmailMessage
 from django.core.mail import EmailMultiAlternatives
 from django.test import SimpleTestCase as TestCase
-from python_http_client.client import HTTPError
-from python_http_client.client import Client, Response
-from python_http_client.exceptions import handle_error
 
 from sgbackend import SendGridBackend
 
 settings.configure()
-
-
-class MockException(HTTPError):
-    def __init__(self, code):
-        self.code = code
-        self.reason = 'REASON'
-        self.hdrs = 'HEADERS'
-
-    def read(self):
-        return 'BODY'
-
-
-class MockClient(Client):
-    def __init__(self, host):
-        self.response_code = 400
-        Client.__init__(self, host)
-
-    def _make_request(self, opener, request):
-        raise handle_error(MockException(self.response_code))
 
 
 class SendGridBackendTests(TestCase):
@@ -48,6 +26,7 @@ class SendGridBackendTests(TestCase):
                 mail,
                 {'from': {'email': 'webmaster@localhost'},
                  'subject': '',
+                 'mail_settings': {},
                  'content': [{'type': 'text/plain', 'value': ''}],
                  'personalizations': [{'subject': ''}]}
             )
@@ -62,6 +41,7 @@ class SendGridBackendTests(TestCase):
                  'personalizations': [
                      {'to': [{'email': 'andrii.soldatenko@test.com'}],
                       'subject': ''}],
+                  'mail_settings': {},
                  'from': {'email': 'webmaster@localhost'}, 'subject': ''}
             )
 
@@ -75,6 +55,7 @@ class SendGridBackendTests(TestCase):
                  'personalizations': [
                      {'cc': [{'email': 'andrii.soldatenko@test.com'}],
                       'subject': ''}],
+                      'mail_settings': {},
                  'from': {'email': 'webmaster@localhost'}, 'subject': ''}
             )
 
@@ -88,6 +69,7 @@ class SendGridBackendTests(TestCase):
                  'personalizations': [
                      {'bcc': [{'email': 'andrii.soldatenko@test.com'}],
                       'subject': ''}],
+                      'mail_settings': {},
                  'from': {'email': 'webmaster@localhost'}, 'subject': ''}
             )
 
@@ -101,6 +83,7 @@ class SendGridBackendTests(TestCase):
                 mail,
                 {'content': [{'value': '', 'type': 'text/plain'}],
                  'personalizations': [{'subject': ''}],
+                 'mail_settings': {},
                  'reply_to': {'email': 'andrii.soldatenko@test.com'},
                  'from': {'email': 'webmaster@localhost'}, 'subject': ''}
             )
@@ -112,6 +95,7 @@ class SendGridBackendTests(TestCase):
                 mail,
                 {'content': [{'value': '', 'type': 'text/plain'}],
                  'personalizations': [{'subject': ''}],
+                 'mail_settings': {},
                  'reply_to': {'email': 'andrii.soldatenko@test.com'},
                  'from': {'email': 'webmaster@localhost'}, 'subject': ''}
             )
@@ -124,6 +108,7 @@ class SendGridBackendTests(TestCase):
                 mail,
                 {'content': [{'value': '', 'type': 'text/plain'}],
                  'personalizations': [{'subject': ''}],
+                 'mail_settings': {},
                  'reply_to': {
                     'name': 'Andrii Soldatenko',
                     'email': 'andrii.soldatenko@test.com'},
@@ -145,6 +130,7 @@ class SendGridBackendTests(TestCase):
                                        'message.</p>'}],
                  'from': {'email': 'webmaster@localhost'},
                  'personalizations': [{'subject': ''}],
+                 'mail_settings': {},
                  'subject': ''}
             )
 
@@ -159,6 +145,7 @@ class SendGridBackendTests(TestCase):
                  'content': [{'type': 'text/plain', 'value': ''}],
                  'from': {'email': 'webmaster@localhost'},
                  'personalizations': [{'subject': ''}],
+                 'mail_settings': {},
                  'subject': ''
                  }
             )
@@ -174,7 +161,8 @@ class SendGridBackendTests(TestCase):
                  'content': [{'type': 'text/plain', 'value': ''}],
                  'from': {'email': 'webmaster@localhost'},
                  'personalizations': [{'subject': ''}],
-                 'subject': ''
+                 'subject': '',
+                 'mail_settings': {},
                  }
             )
 
@@ -188,6 +176,7 @@ class SendGridBackendTests(TestCase):
                 {'content': [{'type': 'text/plain', 'value': ''}],
                  'from': {'email': 'webmaster@localhost'},
                  'personalizations': [{'subject': ''}],
+                 'mail_settings': {},
                  'subject': ''}
             )
 
@@ -202,6 +191,7 @@ class SendGridBackendTests(TestCase):
                  'from': {'email': 'webmaster@localhost'},
                  'headers': {'EXTRA_HEADER': 'VALUE'},
                  'personalizations': [{'subject': ''}],
+                 'mail_settings': {},
                  'subject': ''}
             )
 
@@ -218,13 +208,6 @@ class SendGridBackendTests(TestCase):
                  'custom_args': {'custom_arg1': '12345-abcdef'},
                  'from': {'email': 'webmaster@localhost'},
                  'personalizations': [{'subject': ''}],
+                 'mail_settings': {},
                  'subject': ''}
             )
-            
-    def test_send_messages_error(self):
-        mock_client = MockClient(self.host)
-        backend = SendGridBackend()
-        backend.sg.client = mock_client
-        msg = EmailMessage()
-        with self.assertRaises(HTTPError):
-            backend.send_messages(emails=[SendGridBackend()._build_sg_mail(msg)])

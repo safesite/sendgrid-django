@@ -6,6 +6,7 @@ sendgrid_django.egg-info
 .eggs
 venv
 .idea
+.vscode
 .DS_Store
 .python-version
 # Byte-compiled / optimized / DLL files
