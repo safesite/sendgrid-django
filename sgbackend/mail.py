@@ -1,3 +1,4 @@
+from sgbackend.sandbox_settings import can_enable_sandbox_mode
 from .version import __version__
 
 import base64
@@ -114,18 +115,8 @@ class SendGridBackend(BaseEmailBackend):
             mail_settings.bypass_list_management = BypassListManagement(email.bypass_list_management)
             
         #Check for sandbox mode
-        sandbox_mode = getattr(settings, "SENDGRID_SANDBOX", False)
-        if sandbox_mode:
-            sandbox_whitelist_domains = getattr(settings, "SENDGRID_SANDBOX_WHITELIST_DOMAINS", [])
-            sandbox_whitelist = False
-            for e in email.to:
-                domain = e.split('@')[1]
-                if domain in sandbox_whitelist_domains:
-                    sandbox_whitelist = True
-
-            if not sandbox_whitelist:
-                mail_settings.sandbox_mode = SandBoxMode(sandbox_mode)
-
+        if can_enable_sandbox_mode(email.to):
+            mail_settings.sandbox_mode = SandBoxMode(True)
 
         if hasattr(email, 'template_id'):
             mail.template_id = email.template_id
