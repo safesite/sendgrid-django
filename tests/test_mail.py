@@ -198,10 +198,8 @@ class SendGridBackendTests(TestCase):
     def test_build_sg_email_w_custom_args(self):
         msg = EmailMessage()
         msg.custom_args = {'custom_arg1': '12345-abcdef'}
-
         with self.settings(SENDGRID_API_KEY='test_key'):
             mail = SendGridBackend()._build_sg_mail(msg)
-
             self.assertEqual(
                 mail,
                 {'content': [{'type': 'text/plain', 'value': ''}],
@@ -211,3 +209,93 @@ class SendGridBackendTests(TestCase):
                  'mail_settings': {},
                  'subject': ''}
             )
+
+    def test_list_mgmt_bypass_true(self):
+        msg = EmailMessage()
+        msg.bypass_list_management = True
+        with self.settings(SENDGRID_API_KEY='test_key'):
+            mail = SendGridBackend()._build_sg_mail(msg)
+            self.assertEqual(
+                mail,
+                {'content': [{'type': 'text/plain', 'value': ''}],
+                 'from': {'email': 'webmaster@localhost'},
+                 'personalizations': [{'subject': ''}],
+                 'mail_settings': {
+                     'bypass_list_management': {
+                         'enable': True
+                     }
+                 },
+                 'subject': ''}
+            )
+
+    def test_list_mgmt_bypass_false(self):
+        msg = EmailMessage()
+        msg.bypass_list_management = False
+        with self.settings(SENDGRID_API_KEY='test_key'):
+            mail = SendGridBackend()._build_sg_mail(msg)
+            self.assertEqual(
+                mail,
+                {'content': [{'type': 'text/plain', 'value': ''}],
+                 'from': {'email': 'webmaster@localhost'},
+                 'personalizations': [{'subject': ''}],
+                 'mail_settings': {
+                     'bypass_list_management': {
+                         'enable': False
+                     }
+                 },
+                 'subject': ''}
+            )
+    
+    def test_sandbox_true_no_whitelist(self):
+        msg = EmailMessage(to=['test@example.com'])
+        with self.settings(
+            SENDGRID_API_KEY='test_key',
+            SENDGRID_SANDBOX=True
+        ):
+            mail = SendGridBackend()._build_sg_mail(msg)
+            self.assertEqual(
+                mail,
+                {'content': [{'type': 'text/plain', 'value': ''}],
+                 'from': {'email': 'webmaster@localhost'},
+                 'personalizations': [{'subject': '', 'to': [
+                     {
+                         'email': 'test@example.com'
+                     }
+                 ]}],
+                 'mail_settings': {
+                     'sandbox_mode': {
+                         'enable': True
+                     }
+                 },
+                 'subject': ''}
+            )
+
+    # Note that this showcases the logic that the sandbox mode will by bypassed if
+    # ANY "to" address matched in the whitelist. Not if ALL "to" addresses match.
+    def test_sandbox_true_with_whitelist_match_single(self):
+        msg = EmailMessage(to=[
+            'test@example.com',
+            'test@example.net',
+        ])
+        with self.settings(
+            SENDGRID_API_KEY='test_key',
+            SENDGRID_SANDBOX=True,
+            SENDGRID_SANDBOX_WHITELIST_DOMAINS=['example.com']
+        ):
+            mail = SendGridBackend()._build_sg_mail(msg)
+            self.assertEqual(
+                mail,
+                {'content': [{'type': 'text/plain', 'value': ''}],
+                 'from': {'email': 'webmaster@localhost'},
+                 'personalizations': [{'subject': '', 'to': [
+                     {
+                         'email': 'test@example.com'
+                     },
+                     {
+                         'email': 'test@example.net'
+                     }
+                 ]}],
+                 'mail_settings': {},
+                 'subject': ''}
+            )
+

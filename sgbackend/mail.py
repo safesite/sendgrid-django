@@ -47,8 +47,6 @@ class SendGridBackend(BaseEmailBackend):
             raise ImproperlyConfigured('''
                 SENDGRID_API_KEY must be declared in settings.py''')
 
-
-
         self.sg = sendgrid.SendGridAPIClient(apikey=self.api_key)
         self.version = 'sendgrid/{0};django'.format(__version__)
         self.sg.client.request_headers['User-agent'] = self.version
