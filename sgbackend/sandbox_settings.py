@@ -1,32 +1,20 @@
 from django.conf import settings
+import re
 
-def get_sandbox_bypass_whitelist():
-    # @deprecated - use SENDGRID_SANDBOX_BYPASS_WHITELIST instead
-    sandbox_whitelist_domains = getattr(
-        settings, "SENDGRID_SANDBOX_WHITELIST_DOMAINS", []
-    )
-    sandbox_bypass_whitelist = getattr(
-        settings, "SENDGRID_SANDBOX_BYPASS_WHITELIST", []
-    )
-    for sandbox_whitelist_domain in sandbox_whitelist_domains:
-        sandbox_bypass_whitelist.append(sandbox_whitelist_domain)
-    return list(set(sandbox_bypass_whitelist)) # Ensure unique
-
-def can_bypass_sandbox_setting(to_address, sandbox_bypass_whitelist):
-    to_address_domain = to_address.split('@')[1]
-    return (
-        to_address in sandbox_bypass_whitelist
-        or to_address_domain in sandbox_bypass_whitelist
-    )
-
-# Note that sandbox mode setting will be bypassed if ANY match is found in the 
-# whitelist, not if ALL "to" addresses match
+# Note that sandbox mode "True" setting will be bypassed if ANY match is found in the 
+# whitelist, not if ALL to_addresses match.
 def can_enable_sandbox_mode(to_addresses = []):
     wants_sandbox_mode = getattr(settings, "SENDGRID_SANDBOX", False)
     if not wants_sandbox_mode:
         return False
-    sandbox_bypass_whitelist = get_sandbox_bypass_whitelist()
+    domain_whitelist = getattr(settings, "SENDGRID_SANDBOX_WHITELIST_DOMAINS", [])
+    regex_whitelist = getattr(settings, "SENDGRID_SANDBOX_WHITELIST_REGEX", [])
+    regex_whitelist_compiled = map(re.compile, regex_whitelist)
     for to_address in to_addresses:
-        if can_bypass_sandbox_setting(to_address, sandbox_bypass_whitelist):
-            return False
+        to_address_domain = to_address.split('@')[1]
+        if (
+            to_address_domain in domain_whitelist
+            or any(regex.match(to_address) for regex in regex_whitelist_compiled)
+        ):
+            return False # Don't allow Sandbox mode even though it's value is True
     return True
